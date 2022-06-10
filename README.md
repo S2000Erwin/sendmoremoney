@@ -3,6 +3,13 @@ SEND+MORE=MONEY in Stanza
 
 This is an attempt to try to solve this problem
 
+# Usage
+./sendmoremoney send more money
+OR
+./sendmoremoney.exe crack hack error
+in Windows
+There must be 3 arguments
+
 # Background
 "Send More Money" is a Math problem. It can be depicted like this...
     S E N D

@@ -4,6 +4,24 @@ defpackage sendmoremoney:
 
 val debug = false
 
+val args = command-line-arguments()
+val i0-str = args[1]
+val i1-str = args[2]
+val o0-str = args[3]
+
+; val i0-str = "send"
+; val i1-str = "more"
+; val o0-str = "money"
+
+; val i0-str = "a"
+; val i1-str = "b"
+; val o0-str = "c"
+
+; val i0-str = "crack"
+; val i1-str = "hack"
+; val o0-str = "error"
+
+
 ; defstruct Sample :
 ;     a : Int|False 
 ;     c : Int|False 
@@ -18,28 +36,75 @@ val debug = false
 ; val o0 = [e r r o r]
 
 defstruct Sample :
-    s : Int|False 
-    e : Int|False 
-    n : Int|False 
-    d : Int|False 
-    m : Int|False 
-    o : Int|False 
-    r : Int|False 
-    y : Int|False 
-
-val i0 = [s e n d]
-val i1 = [m o r e]
-val o0 = [m o n e y]
+    a : Int|False|True      ; True means ignored. False means unassigned. Int means assigned
+    b : Int|False|True
+    c : Int|False|True
+    d : Int|False|True
+    e : Int|False|True
+    f : Int|False|True
+    g : Int|False|True
+    h : Int|False|True
+    i : Int|False|True
+    j : Int|False|True
+    k : Int|False|True
+    l : Int|False|True
+    m : Int|False|True
+    n : Int|False|True
+    o : Int|False|True
+    p : Int|False|True
+    q : Int|False|True
+    r : Int|False|True
+    s : Int|False|True
+    t : Int|False|True
+    u : Int|False|True
+    v : Int|False|True
+    w : Int|False|True
+    x : Int|False|True
+    y : Int|False|True
+    z : Int|False|True
+ 
 
 ;     S E N D
 ; +   M O R E
 ;------------
 ;   M O N E Y
 ;
+val i0 = to-list $ to-seq $ i0-str
+val i1 = to-list $ to-seq $ i1-str
+val o0 = to-list $ to-seq $ o0-str
 
-val input0 = to-vector<(Sample -> Int|False)>(reverse $ to-list $ i0)
-val input1 = to-vector<(Sample -> Int|False)>(reverse $ to-list $ i1)
-val output = to-vector<(Sample -> Int|False)>(reverse $ to-list $ o0)
+val char-map = [
+    'a' => a
+    'b' => b
+    'c' => c
+    'd' => d
+    'e' => e
+    'f' => f
+    'g' => g
+    'h' => h
+    'i' => i
+    'j' => j
+    'k' => k
+    'l' => l
+    'm' => m
+    'n' => n
+    'o' => o
+    'p' => p
+    'q' => q
+    'r' => r
+    's' => s
+    't' => t
+    'u' => u
+    'v' => v
+    'w' => w
+    'x' => x
+    'y' => y
+    'z' => z
+]
+
+val input0 = to-vector<(Sample -> Int|False|True)>(reverse $ to-list $ map({lookup(char-map _)} i0))
+val input1 = to-vector<(Sample -> Int|False|True)>(reverse $ to-list $ map({lookup(char-map _)} i1))
+val output = to-vector<(Sample -> Int|False|True)>(reverse $ to-list $ map({lookup(char-map _)} o0))
 println("%, %, %," % [input0 input1 output])
 val rank = max(max(length(input0) length(input1)) length(output))
 println(rank)
@@ -118,12 +183,17 @@ defn evaluate (sample : Sample) -> True|False :
     any?({_} [conflict msd-conflict])
 
 ; now we have established evaluate. Let's try to iterate using DPLL
-defn to-sample ( ss : Tuple<Int|False>) -> Sample :
-    Sample(ss[0] ss[1] ss[2] ss[3] ss[4] ss[5] ss[6] ss[7])
+defn to-sample ( ss : Tuple<Int|False|True>) -> Sample :
+    Sample(
+        ss[0] ss[1] ss[2] ss[3] ss[4] ss[5] ss[6] ss[7]
+        ss[8] ss[9] ss[10] ss[11] ss[12] ss[13] ss[14] ss[15]
+        ss[16] ss[17] ss[18] ss[19] ss[20] ss[21] ss[22] ss[23]
+        ss[24] ss[25]
+    )
 
-defn find-from (ss : Tuple<Int|False> n : Int v : Int) -> Int :
+defn find-from (ss : Tuple<Int|False|True> n : Int v : Int) -> Int :
     var v-r = v
-    val ss-v = to-vector<Int|False>(ss)
+    val ss-v = to-vector<Int|False|True>(ss)
     remove(ss-v n)
     val ss-u = to-tuple $ unique $ filter({_ is Int} ss-v)
     label<False> break:
@@ -133,11 +203,12 @@ defn find-from (ss : Tuple<Int|False> n : Int v : Int) -> Int :
                 (f) : break(false)
     v-r
 
-defn get-next-ss (ss : Tuple<Int|False> n : Int) -> [Int Int] :
+defn get-next-ss (ss : Tuple<Int|False|True> n : Int) -> [Int Int] :
     var n-r : Int = n
     var value-r = match(ss[n-r]) :
         (value : Int) : value + 1
-        (f) : 0
+        (f : False) : 0
+        (t) : 10
     val v = find-from(ss n-r value-r) when value-r < 10 else 10
     if v >= 10 :
         n-r = n-r + 1
@@ -159,7 +230,7 @@ defn terminate? (ss : Tuple<Int|True|False>) -> True|False :
                     false
                 (f) : return(false)
                 
-defn current-max? (ss : Tuple<Int|False> n : Int) -> True|False :
+defn current-max? (ss : Tuple<Int|False|True> n : Int) -> True|False :
     match(ss[n]):
         (i : Int) :
             var v : Int = i
@@ -172,9 +243,9 @@ defn current-max? (ss : Tuple<Int|False> n : Int) -> True|False :
             v >= 10
         (f) : false
 
-defn traverse (ss : Tuple<Int|False> n : Int) -> [True|False Tuple<Int|False> Int] :
-    label<[True|False Tuple<Int|False> Int]> return :
-        var ss-r : Tuple<Int|False> = ss
+defn traverse (ss : Tuple<Int|False|True> n : Int) -> [True|False Tuple<Int|False|True> Int] :
+    label<[True|False Tuple<Int|False|True> Int]> return :
+        var ss-r : Tuple<Int|False|True> = ss
         var n-r : Int = n
         while true :
             println("Input ss=%_ n=%_" % [ss-r n-r]) when debug
@@ -182,7 +253,7 @@ defn traverse (ss : Tuple<Int|False> n : Int) -> [True|False Tuple<Int|False> In
             val ch = get-char(STANDARD-INPUT-STREAM) when debug
             val [next-n next-value] = get-next-ss(ss-r n-r)
             
-            val ss-v = to-vector<Int|False>(ss)
+            val ss-v = to-vector<Int|False|True>(ss)
             ss-v[next-n] = next-value
             val next-ss = to-tuple $ ss-v
             val result = evaluate $ to-sample $ to-tuple $ next-ss
@@ -217,8 +288,49 @@ defn traverse (ss : Tuple<Int|False> n : Int) -> [True|False Tuple<Int|False> In
                     n-r = next-n
         [false ss-r n-r]
 
-val ss = to-tuple $ repeat(false 8)
+val ss-v = to-vector<True|False|Int> $ repeat(true 26)
+
+do({
+        for x in _ do :
+            val i = compare(x 'a')
+            ss-v[i] = false
+    }
+    [to-seq(i0-str) to-seq(i1-str) to-seq(o0-str)]
+)
+val ss = to-tuple $ ss-v
 ;val ss = [9 5 6 7 1 0 8 2]
 println(evaluate $ to-sample $ ss)
 val result = traverse(ss 0)
 println(result)
+val rs = result[1] as Tuple<Int|False|True>
+
+defn print-one-answer (xs : Seqable<Char> rs : Tuple<True|False|Int>) :
+    for x in xs do :
+        val i = compare(x 'a')
+        val answer = rs[i]
+        print("%_=%_ " % [x answer])
+
+if none?({_ is False} rs) :
+    print("  ")
+    for n in 0 to (rank - length(i0)) do:
+        print("    ")
+    print-one-answer(i0 rs)
+    println("")
+    print("+ ")
+    for n in 0 to (rank - length(i1)) do:
+        print("    ")
+    print-one-answer(i1 rs)
+    println("")
+    print("==")
+    for n in 0 to rank do:
+        print("====")
+    println("")
+    print("  ")
+    for n in 0 to (rank - length(o0)) do:
+        print("    ")
+    print-one-answer(o0 rs)
+    println("")
+else:
+    println("Failed")
+    println(rs)
+
