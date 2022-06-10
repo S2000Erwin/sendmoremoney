@@ -1,0 +1,300 @@
+defpackage sendmoremoney:
+    import core
+    import collections
+
+val debug = false
+
+; defstruct Sample :
+;     a : Int|False 
+;     c : Int|False 
+;     e : Int|False 
+;     h : Int|False 
+;     k : Int|False 
+;     o : Int|False 
+;     r : Int|False 
+
+; val i0 = [c r a c k]
+; val i1 = [h a c k]
+; val o0 = [e r r o r]
+
+defstruct Sample :
+    s : Int|False 
+    e : Int|False 
+    n : Int|False 
+    d : Int|False 
+    m : Int|False 
+    o : Int|False 
+    r : Int|False 
+    y : Int|False 
+
+val i0 = [s e n d]
+val i1 = [m o r e]
+val o0 = [m o n e y]
+
+;     S E N D
+; +   M O R E
+;------------
+;   M O N E Y
+;
+; can be generalized into the following
+;
+; if no carry from the previous digit addition
+; D + E = Y      --- (1)
+; D + E = 10 + Y --- (2)
+; only (1) or (2) is true. They are mutually exclusive (MX)
+;
+; if there is carry from the previous digital addition
+; N + R + 1 = E -------- (3)
+; N + R + 1 = 10 + E --- (4)
+; (3) and (4) are MX
+; also (2) -> (3) and (2) -> (4) because carry must be generated from previous digit
+; therefore, if (3) or (4) are true, (2) must be true. We say (3) implies (2) => not (3) or (2)
+; So (2) or not (3) and (2) or not (4)
+; On the other hand, if no carry from previous digit
+; N + R = E ------------ (5)
+; N + R = 10 + E --------(6)
+; (5) and (6) are MX
+; (5) -> (1) and (6) -> (1)
+; Now we write again starting from (3)
+; N + R + 1 = E -------- (3)
+; N + R + 1 = 10 + E --- (4)
+; N + R = E ------------ (5)
+; N + R = 10 + E --------(6)
+; (2) or not (3) --------(7)
+; (2) or not (4) --------(8) 
+; (1) or not (5) --------(9)
+; (1) or not (6) --------(10)
+; From (3) to (6), We only need to satisfy either one. 
+; (3) or (4) or (5) or (6) --- (11)
+; This is the only rule we need to satisfy for one digit
+; All other digits follow the same (3)~(11) rules
+; For the Most Significant Digit (MSD), there is one more rule 
+; S != 0 ---- (12)
+; M != 0 -----(13)
+; And for the fifth digit. MSD of the answer, we can use the above (3) ~ (11) rules to observe...
+; 0 + 0 = M
+; 0 + 0 = 10 + M
+; 0 + 0 + 1 = M
+; 0 + 0 + 1 = 10 + M
+; here we iterate M = 0 through 9. 
+; When M = 0, conflict to (13), so M cannot be 0
+; when M = 1, we can try other, pick S = 0 (conflict with (12)), then S = 1, no conflict, try O = 0, and so on...
+;
+; Now, when we say, try M = ?, we are assigning an integer to a variable, S or M or E.
+; defstruct sample
+;   s : Int
+;   e : Int
+;   n : Int
+;   d : Int
+;   m : Int
+;   o : Int
+;   r : Int 
+;   y : Int
+;
+; We need to also map these variables to the X and Y inputs and Z output, like...
+; x = [d(sample) n e s]
+; y = [e r o m]
+; z = [y e n o m]
+;
+; then (1) ~ (2) becomes
+; x[0] + y[0] = z[0] -------- (1)
+; x[0] + y[0] = z[0] + 10 --- (2)
+; (3) ~ (11) becomes
+; x[1] + y[1] + 1 = z[1] -------- (3)
+; x[1] + y[1] + 1 = 10 + z[1] --- (4)
+; x[1] + y[1] = z[1] ------------ (5)
+; x[1] + y[1] = 10 + z[1] --------(6)
+; (2) or not (3) --------(7)
+; (2) or not (4) --------(8) 
+; (1) or not (5) --------(9)
+; (1) or not (6) --------(10)
+; (3) or (4) or (5) or (6) ---- (11)
+; and only (7) ~ (11) needs to be satisifed
+
+
+
+val input0 = to-vector<(Sample -> Int|False)>(reverse $ to-list $ i0)
+val input1 = to-vector<(Sample -> Int|False)>(reverse $ to-list $ i1)
+val output = to-vector<(Sample -> Int|False)>(reverse $ to-list $ o0)
+println("%, %, %," % [input0 input1 output])
+val rank = max(max(length(input0) length(input1)) length(output))
+println(rank)
+;
+; There are two possible output. Conflicted returns True, else returns False
+;
+defn add-digit (a : Int b : Int c : Int carry? : True|False overthrow? : True|False) -> True|False :
+    a + b + (1 when carry? else 0) == c + (10 when overthrow? else 0)
+
+
+defn add-func (sample : Sample n : Int carry? : True|False overthrow? : True|False) -> [True|False True|False] : 
+    ; Int means undetermined
+    val a = input0[n](sample) when n < length(input0) else 0
+    val b = input1[n](sample) when n < length(input1) else 0
+    val c = output[n](sample) when n < length(output) else 0
+    if a is Int and b is Int and c is Int : 
+        [true false] when n == 0 and carry? is True else [true add-digit(a as Int b as Int c as Int carry? overthrow?)]
+    else :
+        [false true]
+
+defn evaluate (sample : Sample) -> True|False :
+    val results = Vector<Tuple<[True|False True|False]>>()      ; the first true|false is determined, the second is the result
+    for n in 0 to rank do :
+        val row-results = [        
+            add-func(sample n false false)  ; (3)
+            add-func(sample n false true)   ; (4)
+            add-func(sample n true false)   ; (5)
+            add-func(sample n true true)    ; (6)
+        ]
+        val non-ones-results = [
+            [results[n - 1][0][0] and results[n - 1][2][0] and row-results[0][0] 
+             results[n - 1][0][1] or results[n - 1][2][1] or not row-results[0][1]] ; (7)
+            [results[n - 1][0][0] and results[n - 1][2][0] and row-results[1][0] 
+             results[n - 1][0][1] or results[n - 1][2][1] or not row-results[1][1]] ; (8)
+            [results[n - 1][1][0] and results[n - 1][3][0] and row-results[2][0] 
+             results[n - 1][1][1] or results[n - 1][3][1] or not row-results[2][1]] ; (9)
+            [results[n - 1][1][0] and results[n - 1][3][0] and row-results[3][0] 
+             results[n - 1][1][1] or results[n - 1][3][1] or not row-results[3][1]] ; (10)
+        ] when n > 0 else [[true true] [true true] [true true] [true true]]
+        
+        val final-result = [row-results[0][0] and row-results[1][0] and row-results[2][0] and row-results[3][0]
+                            row-results[0][1] or row-results[1][1] or row-results[2][1] or row-results[3][1]] ; (11)        
+        add(results to-tuple $ cat(cat(row-results non-ones-results) [final-result])) 
+    ; MSD
+    val input0-msd = input0[length(input0) - 1](sample)
+    val input1-msd = input1[length(input1) - 1](sample)
+    val output-msd = output[length(output) - 1](sample)
+    val msd-results = [
+        [input0-msd is Int (input0-msd as Int != 0) when input0-msd is Int else true]
+        [input1-msd is Int (input1-msd as Int != 0) when input1-msd is Int else true]
+        [output-msd is Int (output-msd as Int != 0) when output-msd is Int else true]
+    ]
+    add(results msd-results)
+    println(results) when debug  
+    ; determine conflict
+    remove-item(results msd-results)
+    val conflict = any?{{_} _} $ map{
+        fn (t) : 
+            t[4] or t[5] or t[6] or t[7] or t[8]        
+        _
+    } $ map(
+        {   
+            map(
+                fn (t) : (t[0] is True and t[1] is False)
+                _
+            )
+        }
+        to-list $ results
+    )
+    val msd-conflict = any?{{_} _} $ map(
+        fn (r) :
+            r[0] is True and r[1] is False
+        msd-results
+    )
+    println("msd-result = %_" % [msd-results]) when debug
+    any?({_} [conflict msd-conflict])
+
+; now we have established evaluate. Let's try to iterate using DPLL
+defn to-sample ( ss : Tuple<Int|False>) -> Sample :
+    Sample(ss[0] ss[1] ss[2] ss[3] ss[4] ss[5] ss[6] ss[7])
+
+defn find-from (ss : Tuple<Int|False> n : Int v : Int) -> Int :
+    var v-r = v
+    val ss-v = to-vector<Int|False>(ss)
+    remove(ss-v n)
+    val ss-u = to-tuple $ unique $ filter({_ is Int} ss-v)
+    label<False> break:
+        while true:
+            match(find({v-r == _} ss-u)) :
+                (i : Int) : v-r = v-r + 1
+                (f) : break(false)
+    v-r
+
+defn get-next-ss (ss : Tuple<Int|False> n : Int) -> [Int Int] :
+    var n-r : Int = n
+    var value-r = match(ss[n-r]) :
+        (value : Int) : value + 1
+        (f) : 0
+    val v = find-from(ss n-r value-r) when value-r < 10 else 10
+    if v >= 10 :
+        n-r = n-r + 1
+        get-next-ss(ss n-r)
+    else :
+        [n-r v]
+
+defn terminate? (ss : Tuple<Int|True|False>) -> True|False :
+    label<True|False> return:
+        var cur = 9  
+        for n in 0 to length(ss) do :
+            match(ss[n]):
+                (v : Int) :
+                    if v == cur :
+                        cur = cur - 1
+                        if cur == 0 :
+                            return(true)
+                (t : True) :
+                    false
+                (f) : return(false)
+                
+defn current-max? (ss : Tuple<Int|False> n : Int) -> True|False :
+    match(ss[n]):
+        (i : Int) :
+            var v : Int = i
+            label<False> break :
+                while v < 10 :
+                    v = v + 1
+                    match(find({_ == v} ss)) :
+                        (f : False) : break(false)
+                        (v) : false
+            v >= 10
+        (f) : false
+
+defn traverse (ss : Tuple<Int|False> n : Int) -> [True|False Tuple<Int|False> Int] :
+    label<[True|False Tuple<Int|False> Int]> return :
+        var ss-r : Tuple<Int|False> = ss
+        var n-r : Int = n
+        while true :
+            println("Input ss=%_ n=%_" % [ss-r n-r]) when debug
+    
+            val ch = get-char(STANDARD-INPUT-STREAM) when debug
+            val [next-n next-value] = get-next-ss(ss-r n-r)
+            
+            val ss-v = to-vector<Int|False>(ss)
+            ss-v[next-n] = next-value
+            val next-ss = to-tuple $ ss-v
+            val result = evaluate $ to-sample $ to-tuple $ next-ss
+            println("Next ss=%_ n=%_ evaluate=%_" % [next-ss next-n result])
+            if result :
+                ; conflict
+                if current-max?(next-ss next-n) :
+                    println("Max Reached: Backtrack to [%_] n=%_" % [ss-r n-r]) when debug
+                    return([false ss-r n-r])
+                println("Not Max yet. Try next value") when debug
+                ss-r = next-ss
+                n-r = next-n
+            else :
+                if none?({_ is False} next-ss) :
+                    println("Success")
+                    return([true next-ss next-n])
+                else:
+                    val ind = index-when!({_ is False} next-ss)
+                    val [done new-ss new-n] = traverse(next-ss ind)
+                    if done :
+                        return([done new-ss new-n])
+                    ; conflict 
+                    ; i have next-ss and next-n
+                    ; received new-ss and new-n
+                    if terminate?(new-ss) :
+                        return([true new-ss new-n]) 
+                    println("Backtracked: [%_] n=%_" % [next-ss next-n]) when debug
+                    if current-max?(next-ss next-n) :
+                        println("Max is hit. Backtrack again") when debug
+                        return([false next-ss next-n])
+                    ss-r = next-ss
+                    n-r = next-n
+        [false ss-r n-r]
+
+val ss = to-tuple $ repeat(false 8)
+;val ss = [9 5 6 7 1 0 8 2]
+println(evaluate $ to-sample $ ss)
+val result = traverse(ss 0)
+println(result)
