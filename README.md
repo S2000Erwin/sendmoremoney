@@ -24,10 +24,10 @@ in Windows
 "Send More Money" is a Math problem. It can be depicted like this...
 
 
-|   S E N D |
-| + M O R E |
-| --------- |
-| M O N E Y |
+`   S E N D `
+` + M O R E `
+` --------- `
+` M O N E Y `
 
 Just wiki "send more money math problem" you will find a bunch of results
 
