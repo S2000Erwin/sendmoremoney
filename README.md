@@ -212,6 +212,13 @@ Like every tree crawling algorithms, the function `traverse` uses recursive call
 
 `True` is added to signify that that particular letter is not used in the current problem. `False` means that letter is used but not yet assigned to an `Int`
 
+4. Priority Table
+
+In the first incarnation, variables are guessed/visited in alphabetical order. It results that there are 6339 evaluations needed to reach the result for SEND+MORE=MONEY case.
+It is observed that M should be guessed first because it is easy to fix it. Then the other MSD (S in this send), then the ones digits (D, E and Y) and tens digit and so on.
+Thus the priority table is set up with MSDs first and output before inputs. Using Priority Table, 5778 evaluations are achieved.
+
+
 # Todo
 
 - Speed Optimization (DPLL?). Need a one-clause solver. Assign value calculated from the one-clause solver instead of `get-next`. Mark the recursive level and location for quick rewind.
