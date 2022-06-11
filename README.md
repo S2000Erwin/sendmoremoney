@@ -4,6 +4,7 @@
 
 SEND+MORE=MONEY in Stanza
 
+Wiki or Google "send more money math problem" you will find a bunch of results
   
 
 # Usage
@@ -24,31 +25,29 @@ in Windows
 "Send More Money" is a Math problem. It can be depicted like this...
 
 
-`   S E N D `
+`   S E N D` 
 
-` + M O R E `
+`+ M O R E` 
 
-` --------- `
+`---------` 
 
-` M O N E Y `
-
-Just wiki "send more money math problem" you will find a bunch of results
+`M O N E Y `
 
   
 
 # How to solve this type of problem
 
-First, we try to write down the mathematical formula about this problem
+First, we try to write down the mathematical formula
 
-Note that
+In ones-digit
 
 > D + E = Y --- (1)
 
-But there is also an alternative if D + E is greater than 9 and created an overthrow.
+But there is also an alternative if D + E is greater than 9. In this case, an overthrow is created.
 
 > D + E = 10 + Y ---(2)
 
- For the tens digit, there are 4 possible formula:
+ For the tens digit, there are 4 possible situations:
 
 If there is carry from the previous digit addition, we will have
 
@@ -56,9 +55,11 @@ If there is carry from the previous digit addition, we will have
 
 > N + R + 1 = 10 + E --- (4)
 
-Also (2) -> (3) and (2) -> (4) because carry must be generated from previous digit
+Also (2) -> (3) and (2) -> (4) because carry must be generated from previous digit calculation in order to generate that '+ 1' on the left-hand side of (3) and (4).
 
-Therefore, if (3) or (4) are true, (2) must be true. We say (3) implies (2). Logically, it can be rewritten as 'not (3) or (2)' or '(2) or not (3) and (2) or not (4)
+Therefore, if (3) or (4) are true, (2) must be true. We say (3) implies (2) or (4) imples (2).
+Logically, [(3) or (4)] imples (2) can be rewritten as ((3)v(4))|(2).
+[not(3)^not(4)]v(2)
 
 On the other hand, if no carry from previous digit
 
@@ -66,10 +67,10 @@ On the other hand, if no carry from previous digit
 
 > N + R = 10 + E --------(6)
 
-(5) -> (1) and (6) -> (1)
+Again, (5)|(1) or (6)|(1)
 
 
-Now we write again starting from (3)
+Now we write everything again starting from (3)
 
 > N + R + 1 = E -------- (3)
 
@@ -190,22 +191,27 @@ The algorithm is like:
 
 let's say we have a sample X with [S E N D M O R Y] 8 variables. Initialize them to false
 
-Evaluate the sample, if there is no conflict (or contradict),
+Evaluate the sample one time, if there is no conflict (or contradict), see if there is any unassigned variable, if so, recursively assign variables.
 
-see if there is any unassigned variable, if so, recursively assign variables.
+If there is conflict, get the current working variable and assign the next higher value. If no higher value to assign, backtrack to the previous variable (pop from recursive call).
 
-If there is conflict, get the current working variable and assign the next higher value.
+Do this repeatedly until a solution is found or the whole tree is traversed.
 
-If no higher value to assign, backtrack to the previous variable (pop from recursive call).
+# Finer Points in the code
 
-Do this repeatedly until the whole tree is traversed.
+1. function as variables.
 
-  
+In the later incarnations, defstruct Sample is changed to accommodate all 26 letters. There are i0, i1 and o0 Tuples to carry the functions like [s e n d].
+Note that s is a getter function. s(Sample) is the variable. These functions can be passed around and act like variable until it is called with (sample).
+
+2. Recursive Crawl.
+
+Like every tree crawling algorithms, the function `traverse` uses recursive called and determine the returns to decide the next action. Besides the Tuple and the current location variables, `done : True|False` is also returned to provide a quick graceful rollup nomatter the operation is successful or not. 
+
+3. Tuple<Int|False|True>
+
+`True` is added to signify that that particular letter is not used in the current problem. `False` means that letter is used but not yet assigned to an `Int`
 
 # Todo
 
-  
-
-- Generalize to all such problem. Allow all possible 26 letters (Done)
-
-- Speed Optimization (DPLL?)
+- Speed Optimization (DPLL?). Need a one-clause solver. Assign value calculated from the one-clause solver instead of `get-next`. Mark the recursive level and location for quick rewind.
