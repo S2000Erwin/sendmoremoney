@@ -144,7 +144,11 @@ defn evaluate (sample : Sample) -> True|False :
              (results[n - 1][1][1] or results[n - 1][3][1]) or not row-results[3][1]] ; (10)
         ] when n > 0 else [[true true] [true true] [true true] [true true]]
         
-        val final-result = [row-results[0][0] and row-results[1][0] and row-results[2][0] and row-results[3][0]
+        val final-result =  [row-results[0][0] and row-results[1][0] and row-results[2][0] and row-results[3][0]
+                            (row-results[0][1] or row-results[2][1]) and not row-results[1][1] and not row-results[3][1]] when n == rank - 1 else
+                            [row-results[0][0] and row-results[1][0] and row-results[2][0] and row-results[3][0]
+                            (row-results[0][1] or row-results[1][1]) and not row-results[2][1] and not row-results[3][1]] when n == 0 else        
+                            [row-results[0][0] and row-results[1][0] and row-results[2][0] and row-results[3][0]
                             row-results[0][1] or row-results[1][1] or row-results[2][1] or row-results[3][1]] ; (11)        
         add(results to-tuple $ cat(cat(row-results non-ones-results) [final-result])) 
     ; MSD

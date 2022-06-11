@@ -219,6 +219,10 @@ It is observed that M should be guessed first because it is easy to fix. Then th
 Thus the priority table is set up with MSDs first and output before inputs. Then go from ones digits to tens digits and so on. 
 Using Priority Table, 5778 evaluations to reach a solution is achieved.
 
+5. More Contraints Refinements
+
+- Ones digit cannot have carry? from previous digit. Set the rules so that `add-func` must have `false` in the `carry?`.
+- Overall MSD cannot have overthrow. Set the rules so that `add-func` must have `false` in `overthrow?`
 
 # Todo
 
