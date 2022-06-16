@@ -4,6 +4,9 @@ defpackage sendmoremoney:
 
 val debug = false
 
+defn dprintln (x) :
+    println(x) when debug
+
 val args = command-line-arguments()
 if length(args) < 4:
     fatal("Too few Parameters")
@@ -82,15 +85,14 @@ val char-map = [
 val input0 = to-vector<(Sample -> Int|False|True)>(reverse $ to-list $ map({lookup(char-map _)} i0))
 val input1 = to-vector<(Sample -> Int|False|True)>(reverse $ to-list $ map({lookup(char-map _)} i1))
 val output = to-vector<(Sample -> Int|False|True)>(reverse $ to-list $ map({lookup(char-map _)} o0))
-println("%, %, %," % [input0 input1 output])
 val rank = max(max(length(input0) length(input1)) length(output))
-println(rank)
+dprintln("rank=%_" % [rank])
 
 ; build priority
 defn add-unique (v : Vector<Equalable> a : Equalable):
     match(find({_ == a} v)):
         (f : False) : 
-            println("%_ is added" % [a])
+            dprintln("%_ is added" % [a])
             add(v a)
         (t) : false
 
@@ -104,7 +106,7 @@ for n in (rank - 1) through 0 by (- 1) do:
     add-unique(priority-vector i1[n]) when n < length(i1)
 val priority-char = unique $ to-list $ priority-vector
 val priority-index = map({compare(_ 'a')} priority-char)
-println(priority-index)
+dprintln(priority-index)
 
 defn xnor (a : True|False b : True|False) -> True|False :
     (a and b) or (not a and not b)
@@ -175,7 +177,7 @@ defn evaluate (sample : Sample) -> True|False :
         [output-msd is Int (output-msd as Int != 0) when output-msd is Int else true]
     ]
     add(results msd-results)
-    println(results) when debug  
+    dprintln(results)  
     ; determine conflict
     remove-item(results msd-results)
     val conflict = any?{{_} _} $ map{
@@ -191,13 +193,13 @@ defn evaluate (sample : Sample) -> True|False :
         }
         to-list $ results
     )
-    println("conflict = %_ " % [conflict]) when debug
+    dprintln("conflict = %_ " % [conflict])
     val msd-conflict = any?{{_} _} $ map(
         fn (r) :
             r[0] is True and r[1] is False
         msd-results
     )
-    println("msd-result = %_" % [msd-results]) when debug
+    dprintln("msd-result = %_" % [msd-results])
     any?({_} [conflict msd-conflict])
 
 ; now we have established evaluate. Let's try to iterate using DPLL
@@ -267,7 +269,7 @@ defn traverse (ss : Tuple<Int|False|True> n : Int) -> [True|False Tuple<Int|Fals
         var ss-r : Tuple<Int|False|True> = ss
         var n-r : Int = n
         while true :
-            println("Input ss=%_ n=%_" % [ss-r n-r]) when debug
+            dprintln("Input ss=%_ n=%_" % [ss-r n-r])
     
             val ch = get-char(STANDARD-INPUT-STREAM) when debug
             val [next-n next-value] = get-next-ss(ss-r n-r)
@@ -280,9 +282,9 @@ defn traverse (ss : Tuple<Int|False|True> n : Int) -> [True|False Tuple<Int|Fals
             if result :
                 ; conflict
                 if current-max?(next-ss next-n) :
-                    println("Max Reached: Backtrack to [%_] n=%_" % [ss-r n-r]) when debug
+                    dprintln("Max Reached: Backtrack to [%_] n=%_" % [ss-r n-r])
                     return([false ss-r n-r])
-                println("Not Max yet. Try next value") when debug
+                dprintln("Not Max yet. Try next value")
                 ss-r = next-ss
                 n-r = next-n
             else :
@@ -299,9 +301,9 @@ defn traverse (ss : Tuple<Int|False|True> n : Int) -> [True|False Tuple<Int|Fals
                     ; received new-ss and new-n
                     if terminate?(new-ss) :
                         return([true new-ss new-n]) 
-                    println("Backtracked: [%_] n=%_" % [next-ss next-n]) when debug
+                    dprintln("Backtracked: [%_] n=%_" % [next-ss next-n])
                     if current-max?(next-ss next-n) :
-                        println("Max is hit. Backtrack again") when debug
+                        dprintln("Max is hit. Backtrack again")
                         return([false next-ss next-n])
                     ss-r = next-ss
                     n-r = next-n
