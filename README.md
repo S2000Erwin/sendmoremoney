@@ -9,7 +9,7 @@ Wiki or Google "send more money math problem" you will find a bunch of results
 
 # Usage
 
-Execute sendmoremoney with 3 more arguments
+Execute sendmoremoney with 3 more arguments. For example...
 
 ./sendmoremoney send more money
 
@@ -39,11 +39,11 @@ in Windows
 
 First, we try to write down the mathematical formula
 
-In ones-digit
+For ones digit
 
 > D + E = Y --- (1)
 
-But there is also an alternative if D + E is greater than 9. In this case, an overthrow is created.
+But there is also an alternative if D + E is greater than 9. In this case, an overthrow is generated.
 
 > D + E = 10 + Y ---(2)
 
@@ -55,63 +55,50 @@ If there is carry from the previous digit addition, we will have
 
 > N + R + 1 = 10 + E --- (4)
 
-Also (2) -> (3) and (2) -> (4) because carry must be generated from previous digit calculation in order to generate that '+ 1' on the left-hand side of (3) and (4).
-
-Therefore, if (3) or (4) are true, (2) must be true. We say (3) implies (2) or (4) imples (2).
-Logically, [(3) or (4)] imples (2) can be rewritten as ((3)v(4))|(2).
-[not(3)^not(4)]v(2)
+Also, note that (2) and (3) are related. They always go together because carry must be generated from previous digit calculation in order to generate that '+ 1' on the left-hand side of (3) and (4).
+Therefore, we have...
+> [((2) and (3)) or (not(2) and not(3))] --- (7)
+> [((2) and (4)) or (not(2) and not(4))] --- (8)
 
 On the other hand, if no carry from previous digit
 
 > N + R = E ------------ (5)
-
 > N + R = 10 + E --------(6)
 
-Again, (5)|(1) or (6)|(1)
-
+Again,
+> [((1) and (5)) or (not(1) and not(5))] --- (9)
+> [((1) and (6)) or (not(1) and not(6))] --- (10)
 
 Now we write everything again starting from (3)
 
 > N + R + 1 = E -------- (3)
-
 > N + R + 1 = 10 + E --- (4)
-
 > N + R = E ------------ (5)
-
 > N + R = 10 + E --------(6)
-
-> (2) or not (3) --------(7)
-
-> (2) or not (4) --------(8)
-
-> (1) or not (5) --------(9)
-
-> (1) or not (6) --------(10)
+> (2) xnor (3) --------(7)
+> (2) xnor (4) --------(8)
+> (1) xnor (5) --------(9)
+> (1) xnor (6) --------(10)
 
 From (3) to (6), We only need to satisfy either one of them.
 
 Therefore, we will have
-
 > (3) or (4) or (5) or (6) --- (11)
 
-This is the only rule we need to satisfy for one digit
+For ones digit, note that (3) and (4) are not possible since there is no previous digit addition to give it a carry.
+Thus, only (5) and (6) could be true.
 
-All other digits follow the same (3)~(11) rules
 
 For the Most Significant Digit (MSD), there is one more rule
 
 > S != 0 ---- (12)
-
 > M != 0 -----(13)
 
-And for the fifth digit. MSD of the answer, we can use the above (3) ~ (11) rules to observe...
+And for the fifth digit. MSD of the answer, we can use the above (3) ~ (11) rules and observe that...
 
 > 0 + 0 = M
-
 > 0 + 0 = 10 + M
-
 > 0 + 0 + 1 = M
-
 > 0 + 0 + 1 = 10 + M
 
 Here we iterate M = 0 through 9.
@@ -158,13 +145,13 @@ then (1) ~ (2) becomes
 
 > x[2] + y[2] = 10 + z[2] --------(6)
 
-> (2) or not (3) --------(7)
+> (2) xnor (3) --------(7)
 
-> (2) or not (4) --------(8)
+> (2) xnor (4) --------(8)
 
-> (1) or not (5) --------(9)
+> (1) xnor (5) --------(9)
 
-> (1) or not (6) --------(10)
+> (1) xnor (6) --------(10)
 
 > (3) or (4) or (5) or (6) ---- (11)
 
@@ -174,26 +161,22 @@ and only (7) ~ (11) needs to be satisfied
 This is only an overall description of the problem.
 
 There are quite a few subtleties buried inside the code.
-
-  
+ 
 
 # Coding
-
-  
 
 Now that we know the math aspect, we can write some code to find the solution.
 
 First, we will try a brute-force tree traversal method.
-
   
 
 The algorithm is like:
 
-let's say we have a sample X with [S E N D M O R Y] 8 variables. Initialize them to false
+Let's say we have a sample X with [S E N D M O R Y] 8 variables. Initialize them to false
 
-Evaluate the sample one time, if there is no conflict (or contradict), see if there is any unassigned variable, if so, recursively assign variables.
+Evaluate the sample one time, if there is no conflict (evaluated True), see if there is any unassigned variable; if so, recursively assign variables.
 
-If there is conflict, get the current working variable and assign the next higher value. If no higher value to assign, backtrack to the previous variable (pop from recursive call).
+If there is conflict (evaluated False), get the current working variable and assign the next higher value. If no higher value to assign, backtrack to the previous variable (pop from recursive call).
 
 Do this repeatedly until a solution is found or the whole tree is traversed.
 
@@ -206,11 +189,11 @@ Note that s is a getter function. s(Sample) is the variable. These functions can
 
 2. Recursive Crawl.
 
-Like every tree crawling algorithms, the function `traverse` uses recursive called and determine the returns to decide the next action. Besides the Tuple and the current location variables, `done : True|False` is also returned to provide a quick graceful rollup nomatter the operation is successful or not. 
+Like every tree crawling algorithms, the function `traverse` uses recursive function and determines the returns to decide the next action. Besides the Tuple and the current location variables, `done : True|False` is also returned to provide a quick graceful rollup nomatter the operation is successful or not. 
 
 3. Tuple<Int|False|True>
 
-`True` is added to signify a particular letter is not used in the current problem. `False` means that letter is used but not yet assigned to an `Int`
+To generalize all 26 letters, `True` is added to signify a particular letter is not used in the current problem. `False` means that letter is used but not yet assigned to an `Int`
 
 4. Priority Table
 
